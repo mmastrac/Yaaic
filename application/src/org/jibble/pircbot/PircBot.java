@@ -39,6 +39,9 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.yaaic.ssl.NaiveTrustManager;
+import org.yaaic.tools.Base64;
+
+import android.util.Log;
 
 /**
  * PircBot is a Java framework for writing IRC bots quickly and easily.
@@ -198,6 +201,39 @@ public abstract class PircBot implements ReplyConstants {
             OutputThread.sendRawLine(this, bwriter, "PASS " + password);
         }
         String nick = this.getName();
+
+        Log.d("YAAIC", "SASL start");
+
+        OutputThread.sendRawLine(this, bwriter, "CAP LS");
+        OutputThread.sendRawLine(this, bwriter, "CAP REQ : sasl multi-prefix");
+        OutputThread.sendRawLine(this, bwriter, "CAP END");
+
+        OutputThread.sendRawLine(this, bwriter, "AUTHENTICATE PLAIN");
+
+        String usernameSASL = "...........";
+        String passwordSASL = "...........";
+
+        String authString = usernameSASL + "\0" + usernameSASL + "\0" + passwordSASL;
+
+        String authStringEncoded = Base64.encodeBytes(authString.getBytes());
+
+        while (authStringEncoded.length() >= 400) {
+            String toSend = authStringEncoded.substring(0, 400);
+            authString = authStringEncoded.substring(400);
+
+            Log.d("Yaaic/Auth", " * " + toSend);
+
+            OutputThread.sendRawLine(this, bwriter, "AUTHENTICATE " + toSend);
+        }
+
+        if (authStringEncoded.length() > 0) {
+            OutputThread.sendRawLine(this, bwriter, "AUTHENTICATE " + authStringEncoded);
+            Log.d("Yaaic/Auth", " * " + authStringEncoded);
+        } else {
+            Log.d("Yaaic/Auth", " * +++");
+            OutputThread.sendRawLine(this, bwriter, "AUTHENTICATE +");
+        }
+
         OutputThread.sendRawLine(this, bwriter, "NICK " + nick);
         OutputThread.sendRawLine(this, bwriter, "USER " + this.getLogin() + " 8 * :" + this.getVersion());
 
@@ -208,7 +244,6 @@ public abstract class PircBot implements ReplyConstants {
         int tries = 1;
         List<String> aliases = getAliases();
         while ((line = breader.readLine()) != null) {
-            
             this.handleLine(line);
             
             int firstSpace = line.indexOf(" ");
@@ -866,6 +901,8 @@ public abstract class PircBot implements ReplyConstants {
             this.onServerPing(line.substring(5));
             return;
         }
+
+        Log.d("Yaaic/IRC", line);
 
         String sourceNick = "";
         String sourceLogin = "";
