@@ -53,9 +53,10 @@ import android.widget.Toast;
  */
 public class AddServerActivity extends Activity implements OnClickListener
 {
-    private static final int REQUEST_CODE_CHANNELS = 1;
-    private static final int REQUEST_CODE_COMMANDS = 2;
-    private static final int REQUEST_CODE_ALIASES  = 3;
+    private static final int REQUEST_CODE_CHANNELS       = 1;
+    private static final int REQUEST_CODE_COMMANDS       = 2;
+    private static final int REQUEST_CODE_ALIASES        = 3;
+    private static final int REQUEST_CODE_AUTHENTICATION = 4;
 
     private Server server;
     private ArrayList<String> aliases;
@@ -80,6 +81,7 @@ public class AddServerActivity extends Activity implements OnClickListener
         ((Button) findViewById(R.id.aliases)).setOnClickListener(this);
         ((Button) findViewById(R.id.channels)).setOnClickListener(this);
         ((Button) findViewById(R.id.commands)).setOnClickListener(this);
+        ((Button) findViewById(R.id.authentication)).setOnClickListener(this);
 
         Spinner spinner = (Spinner) findViewById(R.id.charset);
         String[] charsets = getResources().getStringArray(R.array.charsets);
@@ -165,6 +167,13 @@ public class AddServerActivity extends Activity implements OnClickListener
                 Intent aliasIntent = new Intent(this, AddAliasActivity.class);
                 aliasIntent.putExtra(Extra.ALIASES, aliases);
                 startActivityForResult(aliasIntent, REQUEST_CODE_ALIASES);
+                break;
+            case R.id.authentication:
+                Intent authIntent = new Intent(this, AuthenticationActivity.class);
+                //authIntent.putExtra(Extra.NICKSERV_PASSWORD, null);
+                //authIntent.putExtra(Extra.SASL_USER, null);
+                //authIntent.putExtra(Extra.SASL_PASSWORD, null);
+                startActivityForResult(authIntent, REQUEST_CODE_AUTHENTICATION);
                 break;
             case R.id.channels:
                 Intent channelIntent = new Intent(this, AddChannelActivity.class);
